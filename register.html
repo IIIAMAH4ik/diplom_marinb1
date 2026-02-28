@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Регистрация — EduStart</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="logo" href="index.html">EduStart</a>
+        <nav class="main-nav">
+          <a href="courses.html">Курсы</a>
+          <a href="faq.html">FAQ</a>
+          <a href="contacts.html">Контакты</a>
+          <a class="btn-login" href="login.html">Войти</a>
+          <a class="btn-logout" href="#" style="display:none">Выход</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="container" style="padding:40px 0;max-width:520px">
+        <h1>Регистрация</h1>
+        <form id="register-form" style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
+          <label>Логин
+            <input name="username" required placeholder="Имя пользователя" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef">
+          </label>
+
+          <label>Почта
+            <input name="email" type="email" required placeholder="example@mail.com" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef">
+          </label>
+
+          <label>Пароль
+            <input name="password" type="password" required placeholder="Пароль" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef">
+          </label>
+
+          <div style="display:flex;gap:10px;align-items:center">
+            <button type="submit" style="background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;border:none">Зарегистрироваться</button>
+            <a href="login.html" style="color:var(--muted);text-decoration:none">Уже есть аккаунт?</a>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p>&copy; 2026 EduStart</p>
+        <nav class="footer-nav">
+          <a href="#">Политика</a>
+          <a href="#">Условия</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

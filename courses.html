@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Курсы — EduStart</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="logo" href="index.html">EduStart</a>
+        <nav class="main-nav">
+          <a href="courses.html">Курсы</a>
+          <a href="faq.html">FAQ</a>
+          <a href="contacts.html">Контакты</a>
+          <a class="btn-login" href="login.html">Войти</a>
+          <a class="btn-logout" href="#" style="display:none">Выход</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-inner">
+          <h1>Все курсы</h1>
+          <p class="lead">Выберите курс по направлению, уровню и длительности.</p>
+          <form id="search-form-courses" class="search-form" role="search">
+            <input type="search" placeholder="Поиск по курсам" aria-label="Поиск курсов">
+            <button type="submit">Найти</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="container featured">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <h2>Каталог курсов</h2>
+          <div class="filters">
+            <label style="color:var(--muted);font-size:0.95rem">Фильтр: </label>
+            <select id="filter-select">
+              <option>Все</option>
+              <option>Разработка</option>
+              <option>Дизайн</option>
+              <option>Маркетинг</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="courses-grid">
+          <article class="course-card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h3>Веб-разработка с нуля</h3>
+            <p class="meta">Уровень: Начальный • 30 часов</p>
+            <a class="course-cta" href="#">Подробнее</a>
+          </article>
+
+          <article class="course-card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h3>Продвинутый JavaScript</h3>
+            <p class="meta">Уровень: Продвинутый • 40 часов</p>
+            <a class="course-cta" href="#">Подробнее</a>
+          </article>
+
+          <article class="course-card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h3>UI/UX дизайн — практический</h3>
+            <p class="meta">Уровень: Средний • 20 часов</p>
+            <a class="course-cta" href="#">Подробнее</a>
+          </article>
+
+          <article class="course-card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h3>Маркетинг в социальных сетях</h3>
+            <p class="meta">Уровень: Начальный • 15 часов</p>
+            <a class="course-cta" href="#">Подробнее</a>
+          </article>
+
+          <article class="course-card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h3>Python для анализа данных</h3>
+            <p class="meta">Уровень: Средний • 25 часов</p>
+            <a class="course-cta" href="#">Подробнее</a>
+          </article>
+
+          <article class="course-card">
+            <div class="thumb" aria-hidden="true"></div>
+            <h3>Курс по SQL</h3>
+            <p class="meta">Уровень: Начальный • 10 часов</p>
+            <a class="course-cta" href="#">Подробнее</a>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p>&copy; 2026 EduStart</p>
+        <nav class="footer-nav">
+          <a href="#">Политика</a>
+          <a href="#">Условия</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
