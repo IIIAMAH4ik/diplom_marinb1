@@ -13,6 +13,23 @@ function updateAuthUIFromUser(user){
   const logged = !!user;
   document.querySelectorAll('.btn-login').forEach(el=> el.style.display = logged ? 'none' : 'inline-block');
   document.querySelectorAll('.btn-logout').forEach(el=> el.style.display = logged ? 'inline-block' : 'none');
+  // Ensure profile link exists and toggle it for logged-in users
+  const nav = document.querySelector('.main-nav');
+  if(nav){
+    let profileLink = nav.querySelector('.btn-profile');
+    if(!profileLink){
+      profileLink = document.createElement('a');
+      profileLink.className = 'btn-profile';
+      profileLink.href = 'profile.html';
+      profileLink.textContent = 'Профиль';
+      profileLink.style.marginLeft = '12px';
+      // insert before logout if exists, otherwise append
+      const logoutEl = nav.querySelector('.btn-logout');
+      if(logoutEl) nav.insertBefore(profileLink, logoutEl);
+      else nav.appendChild(profileLink);
+    }
+    profileLink.style.display = logged ? 'inline-block' : 'none';
+  }
 }
 
 // --- Courses data and rendering ---
@@ -108,6 +125,57 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       toggle.addEventListener('click', ()=>{ widget.classList.toggle('open'); if(widget.classList.contains('open')) input.focus(); });
       sendBtn.addEventListener('click', ()=>{ const v = input.value.trim(); if(!v) return; appendMessage('user', v); input.value=''; mockReply(); });
       input.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); sendBtn.click(); } });
+    }
+
+    // --- Profile page rendering ---
+    if(page === 'profile.html'){
+      const root = document.getElementById('profile-root');
+      if(!root) return;
+      try{
+        const meResp = await fetchMe();
+        if(!meResp || !meResp.user){ window.location.href='login.html'; return; }
+        const user = meResp.user;
+        // Simple profile layout: user info, current courses, recommendations, activity
+        const enrolled = []; // placeholder: no enrollment model yet
+        const recommended = COURSES.filter(c => !enrolled.find(e=>e.id===c.id)).slice(0,4);
+        const activity = [];
+
+        root.innerHTML = `
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px">
+            <div>
+              <div class="card" style="padding:18px;margin-bottom:12px">
+                <h2 style="margin-top:0">Привет, ${user.username}</h2>
+                <p style="color:var(--muted)">Почта: ${user.email}</p>
+                <p style="color:var(--muted);margin-top:8px">Создан: ${new Date(user.created_at).toLocaleString()}</p>
+              </div>
+
+              <div class="card" style="padding:18px;margin-bottom:12px">
+                <h3>Текущие курсы</h3>
+                <div id="current-courses">
+                  ${enrolled.length ? enrolled.map(c=>`<div>${c.title}</div>`).join('') : '<p style="color:var(--muted)">Нет текущих курсов. <a href="courses.html">Посмотреть каталог</a></p>'}
+                </div>
+              </div>
+
+              <div class="card" style="padding:18px">
+                <h3>Активность</h3>
+                ${activity.length ? activity.map(a=>`<div>${a}</div>`).join('') : '<p style="color:var(--muted)">Активность отсутствует</p>'}
+              </div>
+            </div>
+
+            <aside>
+              <div class="card" style="padding:18px;margin-bottom:12px">
+                <h3>Рекомендации</h3>
+                ${recommended.map(c=>`<div style="margin-bottom:8px"><strong>${c.title}</strong><div style="color:var(--muted)">${c.category} • ${c.level}</div></div>`).join('')}
+              </div>
+
+              <div class="card" style="padding:18px">
+                <h3>Настройки профиля</h3>
+                <p style="color:var(--muted)">Изменение профиля ещё не реализовано в этой версии.</p>
+              </div>
+            </aside>
+          </div>
+        `;
+      }catch(err){ console.error('profile load error', err); root.innerHTML = '<p>Ошибка загрузки профиля</p>'; }
     }
 
     // Login/register forms handling (server API)
