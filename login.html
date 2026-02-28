@@ -27,15 +27,18 @@
           <label>Логин или e-mail
             <input name="identifier" required placeholder="example@mail.com" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef">
           </label>
+          <div id="login-error-identifier" class="field-error" style="display:none;margin-top:4px"></div>
 
           <label>Пароль
             <input name="password" type="password" required placeholder="Пароль" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef">
           </label>
+          <div id="login-error-password" class="field-error" style="display:none;margin-top:4px"></div>
 
           <div style="display:flex;gap:10px">
             <button type="submit" style="background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;border:none">Войти</button>
             <a href="register.html" style="align-self:center;color:var(--muted);text-decoration:none">Зарегистрироваться</a>
           </div>
+          <div id="login-error-general" class="field-error" style="display:none;margin-top:8px"></div>
         </form>
       </section>
     </main>

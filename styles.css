@@ -82,3 +82,6 @@ body{
 	.chat-panel{width:92vw}
 	.chat-toggle{width:48px;height:48px}
 }
+
+/* Form field error */
+.field-error{color:#b91c1c;font-size:0.95rem}

@@ -116,14 +116,47 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       e.preventDefault();
       const identifier = loginForm.elements['identifier'].value.trim();
       const password = loginForm.elements['password'].value;
-      if(!identifier || !password){ alert('Пожалуйста, заполните оба поля.'); return; }
+      const idErr = document.getElementById('login-error-identifier');
+      const passErr = document.getElementById('login-error-password');
+      const genErr = document.getElementById('login-error-general');
+      if(idErr){ idErr.style.display='none'; idErr.textContent=''; }
+      if(passErr){ passErr.style.display='none'; passErr.textContent=''; }
+      if(genErr){ genErr.style.display='none'; genErr.textContent=''; }
+
+      if(!identifier || !password){ if(genErr){ genErr.textContent='Пожалуйста, заполните оба поля.'; genErr.style.display='block' } else alert('Пожалуйста, заполните оба поля.'); return; }
+
+      const emailRe = /^\S+@\S+\.\S+$/;
+      // identifier can be email or username
+      if(identifier.includes('@')){
+        if(!emailRe.test(identifier)){ if(idErr){ idErr.textContent='Введите корректный e-mail.'; idErr.style.display='block' } else alert('Введите корректный e-mail.'); return; }
+      }else{
+        if(identifier.length < 3){ if(idErr){ idErr.textContent='Логин слишком короткий'; idErr.style.display='block' } else alert('Логин слишком короткий'); return; }
+      }
+
+      // For login we only require a non-empty password; strength is enforced on registration
+
       try{
         const resp = await fetch(`${API_BASE}/api/login`, { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ identifier, password }) });
         const data = await resp.json();
-        if(!resp.ok) return alert(data.error || 'Ошибка входа');
+        if(!resp.ok){
+          const msg = data && data.error ? data.error : (resp.status === 401 ? 'Неверный логин или пароль' : 'Ошибка входа');
+          if(genErr){ genErr.textContent = msg; genErr.style.display = 'block'; } else alert(msg);
+          return;
+        }
         window.location.href = 'index.html';
-      }catch(err){ console.error(err); alert('Ошибка сети'); }
+      }catch(err){ console.error(err); if(genErr){ genErr.textContent='Ошибка сети'; genErr.style.display='block' } else alert('Ошибка сети'); }
     });
+
+    // Clear login errors on input
+    if(loginForm){
+      const identifierInput = loginForm.elements['identifier'];
+      const passwordInput = loginForm.elements['password'];
+      const clearId = ()=>{ const el=document.getElementById('login-error-identifier'); if(el){ el.style.display='none'; el.textContent=''; } };
+      const clearPass = ()=>{ const el=document.getElementById('login-error-password'); if(el){ el.style.display='none'; el.textContent=''; } };
+      const clearGen = ()=>{ const el=document.getElementById('login-error-general'); if(el){ el.style.display='none'; el.textContent=''; } };
+      if(identifierInput) identifierInput.addEventListener('input', ()=>{ clearId(); clearGen(); });
+      if(passwordInput) passwordInput.addEventListener('input', ()=>{ clearPass(); clearGen(); });
+    }
 
     const regForm = document.getElementById('register-form');
     if(regForm) regForm.addEventListener('submit', async e=>{
@@ -131,15 +164,35 @@ document.addEventListener('DOMContentLoaded', async ()=>{
       const username = regForm.elements['username'].value.trim();
       const email = regForm.elements['email'].value.trim();
       const password = regForm.elements['password'].value;
-      if(!username||!email||!password){ alert('Пожалуйста, заполните все поля.'); return; }
-      const emailRe = /^\S+@\S+\.\S+$/; if(!emailRe.test(email)){ alert('Введите корректный e-mail.'); return; }
+      const errorEl = document.getElementById('register-error');
+      if(errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+      if(!username||!email||!password){ if(errorEl){ errorEl.textContent='Пожалуйста, заполните все поля.'; errorEl.style.display='block' } else alert('Пожалуйста, заполните все поля.'); return; }
+      const emailRe = /^\S+@\S+\.\S+$/; if(!emailRe.test(email)){ if(errorEl){ errorEl.textContent='Введите корректный e-mail.'; errorEl.style.display='block' } else alert('Введите корректный e-mail.'); return; }
+      // Password criteria on registration: min 8 chars, at least one letter and one digit
+      const passRe = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+      if(!passRe.test(password)){ if(errorEl){ errorEl.textContent='Пароль должен содержать ≥8 символов, буквы и цифры'; errorEl.style.display='block' } else alert('Пароль должен содержать ≥8 символов, буквы и цифры'); return; }
       try{
         const resp = await fetch(`${API_BASE}/api/register`, { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ username, email, password }) });
         const data = await resp.json();
-        if(!resp.ok) return alert(data.error || 'Ошибка регистрации');
+        if(!resp.ok){
+          const msg = (data && data.error) ? data.error : 'Ошибка регистрации';
+          if(errorEl){ errorEl.textContent = msg; errorEl.style.display = 'block'; } else alert(msg);
+          return;
+        }
+        if(errorEl){ errorEl.style.display='none'; errorEl.textContent=''; }
         window.location.href = 'index.html';
-      }catch(err){ console.error(err); alert('Ошибка сети'); }
+      }catch(err){ console.error(err); if(errorEl){ errorEl.textContent='Ошибка сети'; errorEl.style.display='block' } else alert('Ошибка сети'); }
     });
+
+    // hide register error when user edits username or email
+    if(regForm){
+      const usernameInput = regForm.elements['username'];
+      const emailInput = regForm.elements['email'];
+      const errorEl = document.getElementById('register-error');
+      const clear = ()=>{ if(errorEl){ errorEl.style.display='none'; errorEl.textContent=''; } };
+      if(usernameInput) usernameInput.addEventListener('input', clear);
+      if(emailInput) emailInput.addEventListener('input', clear);
+    }
 
     // Refresh auth UI from server session
     try{ const me = await fetchMe(); updateAuthUIFromUser(me.user); }catch(e){ updateAuthUIFromUser(null); }

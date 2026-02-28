@@ -50,8 +50,11 @@ app.post('/api/register', authLimiter, async (req, res) => {
   const { username, email, password } = req.body || {};
   if(!username || !email || !password) return res.status(400).json({ error: 'Missing fields' });
   try{
-    const exists = await pool.query('SELECT id FROM users WHERE lower(email) = $1 OR lower(username) = $2', [email.toLowerCase(), username.toLowerCase()]);
-    if(exists.rowCount) return res.status(409).json({ error: 'User exists' });
+    // Check username and email separately to return specific errors
+    const existsUser = await pool.query('SELECT id FROM users WHERE lower(username) = $1', [username.toLowerCase()]);
+    if(existsUser.rowCount) return res.status(409).json({ error: 'Логин уже занят' });
+    const existsEmail = await pool.query('SELECT id FROM users WHERE lower(email) = $1', [email.toLowerCase()]);
+    if(existsEmail.rowCount) return res.status(409).json({ error: 'Почта уже зарегистрирована' });
     const hash = await argon2.hash(password);
     const r = await pool.query('INSERT INTO users (username,email,password_hash) VALUES ($1,$2,$3) RETURNING id,username,email,created_at', [username, email.toLowerCase(), hash]);
     req.session.userId = r.rows[0].id;
