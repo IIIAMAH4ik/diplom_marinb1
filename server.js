@@ -50,7 +50,7 @@ app.post('/api/register', authLimiter, async (req, res) => {
   const { username, email, password } = req.body || {};
   if(!username || !email || !password) return res.status(400).json({ error: 'Missing fields' });
   try{
-    const exists = await pool.query('SELECT id FROM users WHERE email = $1 OR username = $2', [email.toLowerCase(), username]);
+    const exists = await pool.query('SELECT id FROM users WHERE lower(email) = $1 OR lower(username) = $2', [email.toLowerCase(), username.toLowerCase()]);
     if(exists.rowCount) return res.status(409).json({ error: 'User exists' });
     const hash = await argon2.hash(password);
     const r = await pool.query('INSERT INTO users (username,email,password_hash) VALUES ($1,$2,$3) RETURNING id,username,email,created_at', [username, email.toLowerCase(), hash]);
@@ -64,7 +64,7 @@ app.post('/api/login', authLimiter, async (req, res) => {
   const { identifier, password } = req.body || {};
   if(!identifier || !password) return res.status(400).json({ error: 'Missing fields' });
   try{
-    const r = await pool.query('SELECT id,username,email,password_hash FROM users WHERE username=$1 OR email=$1', [identifier.toLowerCase()]);
+    const r = await pool.query('SELECT id,username,email,password_hash FROM users WHERE lower(username)=$1 OR lower(email)=$1', [identifier.toLowerCase()]);
     if(r.rowCount === 0) return res.status(401).json({ error: 'Invalid credentials' });
     const u = r.rows[0];
     const ok = await argon2.verify(u.password_hash, password);
