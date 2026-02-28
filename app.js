@@ -1,11 +1,16 @@
 // Minimal app.js — handles auth flag, course rendering & filtering, and chat widget (mock replies)
 console.log('app.js loaded');
 
-// --- Authentication helpers (simple localStorage flag) ---
-function isLoggedIn(){ return localStorage.getItem('loggedIn') === 'true'; }
-function setLoggedIn(flag){ if(flag) localStorage.setItem('loggedIn','true'); else localStorage.removeItem('loggedIn'); updateAuthUI(); }
-function updateAuthUI(){
-  const logged = isLoggedIn();
+// --- Authentication helpers (server-backed sessions)
+const API_BASE = (window.__API_BASE__ || 'http://localhost:4000');
+async function fetchMe(){
+  try{
+    const r = await fetch(`${API_BASE}/api/me`, { credentials: 'include' });
+    return await r.json();
+  }catch(e){ return { user: null } }
+}
+function updateAuthUIFromUser(user){
+  const logged = !!user;
   document.querySelectorAll('.btn-login').forEach(el=> el.style.display = logged ? 'none' : 'inline-block');
   document.querySelectorAll('.btn-logout').forEach(el=> el.style.display = logged ? 'inline-block' : 'none');
 }
@@ -42,12 +47,11 @@ function filterCourses(query, category){
 }
 
 // --- Main initialization ---
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('DOMContentLoaded', async ()=>{
   try{
-    updateAuthUI();
 
     // Logout links
-    document.querySelectorAll('.btn-logout').forEach(btn=> btn.addEventListener('click', e=>{ e.preventDefault(); setLoggedIn(false); window.location.href='index.html'; }));
+    document.querySelectorAll('.btn-logout').forEach(btn=> btn.addEventListener('click', async e=>{ e.preventDefault(); try{ await fetch(`${API_BASE}/api/logout`, { method: 'POST', credentials: 'include' }); }catch(_){} window.location.href='index.html'; }));
 
     // Initial render of course grids
     document.querySelectorAll('.courses-grid').forEach(grid => {
@@ -106,12 +110,39 @@ document.addEventListener('DOMContentLoaded', ()=>{
       input.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); sendBtn.click(); } });
     }
 
-    // Login/register forms handling (minimal, preserve previous behavior)
+    // Login/register forms handling (server API)
     const loginForm = document.getElementById('login-form');
-    if(loginForm) loginForm.addEventListener('submit', e=>{ e.preventDefault(); const id = loginForm.elements['identifier'].value.trim(); const pass = loginForm.elements['password'].value; if(!id||!pass){ alert('Пожалуйста, заполните оба поля.'); return; } const stored = (()=>{ try{ return JSON.parse(localStorage.getItem('edu_user')||'null'); }catch(e){return null;} })(); if(stored){ const match = (id===stored.username || id===stored.email) && pass===stored.password; if(!match){ alert('Неверный логин/пароль.'); return; } } setLoggedIn(true); window.location.href='index.html'; });
+    if(loginForm) loginForm.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const identifier = loginForm.elements['identifier'].value.trim();
+      const password = loginForm.elements['password'].value;
+      if(!identifier || !password){ alert('Пожалуйста, заполните оба поля.'); return; }
+      try{
+        const resp = await fetch(`${API_BASE}/api/login`, { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ identifier, password }) });
+        const data = await resp.json();
+        if(!resp.ok) return alert(data.error || 'Ошибка входа');
+        window.location.href = 'index.html';
+      }catch(err){ console.error(err); alert('Ошибка сети'); }
+    });
 
     const regForm = document.getElementById('register-form');
-    if(regForm) regForm.addEventListener('submit', e=>{ e.preventDefault(); const username = regForm.elements['username'].value.trim(); const email = regForm.elements['email'].value.trim(); const pass = regForm.elements['password'].value; if(!username||!email||!pass){ alert('Пожалуйста, заполните все поля.'); return; } const emailRe = /^\S+@\S+\.\S+$/; if(!emailRe.test(email)){ alert('Введите корректный e-mail.'); return; } const user = { username, email, password: pass }; try{ localStorage.setItem('edu_user', JSON.stringify(user)); }catch(err){} setLoggedIn(true); window.location.href='index.html'; });
+    if(regForm) regForm.addEventListener('submit', async e=>{
+      e.preventDefault();
+      const username = regForm.elements['username'].value.trim();
+      const email = regForm.elements['email'].value.trim();
+      const password = regForm.elements['password'].value;
+      if(!username||!email||!password){ alert('Пожалуйста, заполните все поля.'); return; }
+      const emailRe = /^\S+@\S+\.\S+$/; if(!emailRe.test(email)){ alert('Введите корректный e-mail.'); return; }
+      try{
+        const resp = await fetch(`${API_BASE}/api/register`, { method: 'POST', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ username, email, password }) });
+        const data = await resp.json();
+        if(!resp.ok) return alert(data.error || 'Ошибка регистрации');
+        window.location.href = 'index.html';
+      }catch(err){ console.error(err); alert('Ошибка сети'); }
+    });
+
+    // Refresh auth UI from server session
+    try{ const me = await fetchMe(); updateAuthUIFromUser(me.user); }catch(e){ updateAuthUIFromUser(null); }
 
   }catch(err){ console.error('app.js initialization error', err); }
 });
